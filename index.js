@@ -1,4 +1,4 @@
-#!usr/bin/env node
+#!/usr/bin/env node
 
 import chalk from "chalk";
 import inquirer from "inquirer";
@@ -6,14 +6,17 @@ import gradient from "gradient-string";
 import chalkAnimation from "chalk-animation";
 import figlet from "figlet";
 import { createSpinner } from "nanospinner";
+import ShowProjects from "./src/ShowProjects.js";
+import ShowAboutMe from "./src/ShowAboutMe.js";
+import { sleep } from "./src/Utils.js";
+import ShowSkills from "./src/ShowSkills.js";
+import ShowContactMe from "./src/ShowContactMe.js";
 
-const sleep = (ms = 2000) => new Promise((r) => setTimeout(r, ms));
+let exit = false;
 
 async function welcome() {
   console.log(
-    gradient.teen(
-      figlet.textSync("AirbornHarsh", { horizontalLayout: "full" })
-    )
+    gradient.teen(figlet.textSync("AirbornHarsh", { horizontalLayout: "full" }))
   );
 
   sleep(1000);
@@ -33,6 +36,10 @@ async function askName() {
     name: "name",
     message: "What is your name?",
   });
+
+  console.log(`
+  ${chalk.bold(`Hey ${name}! I am glad to meet you.`)}
+  `);
 
   return name;
 }
@@ -64,11 +71,61 @@ async function handleFunction(role) {
   return role;
 }
 
-await welcome();
-const name = await askName();
-console.log(`
-${chalk.bold(`Hey ${name}! I am glad to meet you.`)}
-`);
-sleep(1000);
+async function interestedIn() {
+  const { interest } = await inquirer.prompt({
+    type: "list",
+    name: "interest",
+    message: "What are you intrested in?",
+    choices: ["About Me", "Skills", "Projects", "Contact Us", "Exit"],
+  });
 
-await askRole();
+  if (interest === "About Me") {
+    await ShowAboutMe();
+  } else if (interest === "Skills") {
+    await ShowSkills();
+  } else if (interest === "Projects") {
+    await ShowProjects();
+  } else if (interest === "Contact Us") {
+    await ShowContactMe();
+  } else if (interest === "Exit") {
+    const { again } = await inquirer.prompt({
+      type: "confirm",
+      name: "again",
+      message: "Are you sure to exit?",
+    });
+    if (again) {
+      console.log(
+        chalk.bold(
+          "You can also check my GitHub Profile: https://github.com/airbornharsh and Twitter Profile: https://twitter.com/airbornharsh"
+        )
+      );
+      await sleep(1000);
+      const ani = chalkAnimation.rainbow(
+        figlet.textSync("Good Bye", {
+          width: 80,
+          font: "Standard",
+          horizontalLayout: "full",
+        }),
+        2
+      );
+      await sleep(2000);
+      ani.stop();
+      exit = true;
+    } else {
+    }
+  }
+
+  return interest;
+}
+
+const startUp = async () => {
+  await welcome();
+  await askName();
+  sleep(1000);
+  // await askRole();
+  while (!exit) {
+    await interestedIn();
+  }
+};
+
+startUp();
